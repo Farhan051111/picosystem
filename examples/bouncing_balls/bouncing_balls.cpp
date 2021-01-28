@@ -1,6 +1,8 @@
 #include <string.h>
 #include <math.h>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
 #include "picosystem.hpp"
 
@@ -22,13 +24,13 @@ int main() {
       .position = Vec2(rand() % 120, rand() % 120),
       .direction = Vec2((float(rand() % 255) / 128.0f) - 1.0f, (float(rand() % 255) / 128.0f) - 1.0f),
       .radius = (rand() % 5) + 2,
-      .pen = Pen(rand() % 255, rand() % 255, rand() % 255)
+      .pen = Pen(rand() % 15, rand() % 15, rand() % 15)
     };
     balls.push_back(ball);
   }
 
   while(true) {
-    screen.pen = Pen(120, 40, 60);
+    screen.pen = Pen(1, 2, 3);
     screen.clear();
 
     for(auto &ball : balls) {
@@ -42,6 +44,17 @@ int main() {
       screen.pen = ball.pen;
       screen.circle(Point(ball.position), ball.radius);
     }
+
+    float battery = battery_voltage();
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2) << battery;
+    std::string voltage_string = ss.str();
+
+    screen.pen = Pen(0, 0, 0, 8);
+    screen.rectangle(5, 5, 34, 15);
+
+    screen.pen = Pen(15, 15, 15);
+    screen.text(voltage_string, 10, 10);
 
     flip();
   }

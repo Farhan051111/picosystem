@@ -5,21 +5,6 @@
 
 namespace picosystem {
 
-  // first prototype pin layout
-  /*
-  // dpad pins
-  enum dpad {UP = 20, DOWN = 23, LEFT = 22, RIGHT = 21};
-
-  // action button pins
-  enum button {A  = 18, B = 19, X = 17, Y = 16};
-
-  // screen and utility pins
-  enum pin {
-    CS = 5, SCK = 6, MOSI = 7, VSYNC = 8, DC = 9, BACKLIGHT = 12,
-    AUDIO = 11, LED = 3, CHARGE_STATUS = 24, BATTERY_SENSE = 26
-  };
-  */
-
   // final pin layout
   // dpad pins
   enum dpad {UP = 23, DOWN = 20, LEFT = 22, RIGHT = 21};
