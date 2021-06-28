@@ -131,6 +131,18 @@ namespace picosystem {
     }
   }
 
+  void Surface::rectangle(Rect r) {
+    clip_rect(r.x, r.y, r.w, r.h);
+
+    Pen *d = data + offset(r.x, r.y);
+    uint32_t h = r.h;
+
+    while(h--) {
+      bf(&pen, 0, d, r.w); // draw row
+      d += w;
+    }
+  }
+
   // blit from one surface to another
   void Surface::blit(const Surface &source, const Rect &from, const Point &to) {
     Rect dr = clip.intersection(Rect(to.x, to.y, from.w, from.h));  // clipped destination rect

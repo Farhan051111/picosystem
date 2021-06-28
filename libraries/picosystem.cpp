@@ -84,6 +84,6 @@ namespace picosystem {
   }
 
   bool pressed(uint8_t button) {
-    return gpio_get(button);
+    return gpio_get(button) == 0;
   }
 }

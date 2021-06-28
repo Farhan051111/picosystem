@@ -29,6 +29,10 @@ namespace picosystem {
 
   struct Rect;
   struct Vec2;
+  struct Size;
+  struct Point;
+
+
 
   struct Point {
     int32_t x = 0, y = 0;
@@ -39,13 +43,40 @@ namespace picosystem {
 
     inline Point& operator-= (const Point &a) { x -= a.x; y -= a.y; return *this; }
     inline Point& operator+= (const Point &a) { x += a.x; y += a.y; return *this; }
+    inline Point& operator*= (const float a) { x = static_cast<int32_t>(x * a); y = static_cast<int32_t>(y * a); return *this; }
+    inline Point& operator/= (const int32_t a) { x /= a; y /= a;   return *this; }
 
     Point clamp(const Rect &r) const;
+
   };
 
+  inline bool operator== (const Point &lhs, const Point &rhs) { return lhs.x == rhs.x && lhs.y == rhs.y; }
+  inline bool operator!= (const Point &lhs, const Point &rhs) { return !(lhs == rhs); }
   inline Point operator-  (Point lhs, const Point &rhs) { lhs -= rhs; return lhs; }
   inline Point operator-  (const Point &rhs) { return Point(-rhs.x, -rhs.y); }
   inline Point operator+  (Point lhs, const Point &rhs) { lhs += rhs; return lhs; }
+  inline Point operator*  (Point lhs, const float a) { lhs *= a; return lhs; }
+  inline Point operator/  (Point lhs, const int32_t a) { lhs /= a; return lhs; }
+
+  struct Size {
+    int32_t w = 0, h = 0;
+
+    Size() = default;
+    constexpr Size(int32_t w, int32_t h) : w(w), h(h) {}
+
+    inline Size& operator*= (const float a) { w = static_cast<int32_t>(w * a); h = static_cast<int32_t>(h * a); return *this; }
+    inline Size& operator/= (const float a) { w = static_cast<int32_t>(w / a); h = static_cast<int32_t>(h / a); return *this; }
+    inline Size& operator*= (const int a) { w = static_cast<int32_t>(w * a); h = static_cast<int32_t>(h * a); return *this; }
+    inline Size& operator/= (const int a) { w = static_cast<int32_t>(w / a); h = static_cast<int32_t>(h / a); return *this; }
+
+    constexpr bool empty() const { return w <= 0 || h <= 0; }
+
+    constexpr int32_t area() const { return w * h; }
+
+    constexpr bool contains(const Point &p) const {
+      return p.x >= 0 && p.y >= 0 && p.x < w && p.y < h;
+    }
+  };
 
   struct Vec2 {
     float x = 0, y = 0;
@@ -66,6 +97,7 @@ namespace picosystem {
 
     Rect() = default;
     Rect(int32_t x, int32_t y, int32_t w, int32_t h) : x(x), y(y), w(w), h(h) {}
+    Rect(Point p, Size s) : x(p.x), y(p.y), w(s.w), h(s.h) {};
 
     bool empty() const {return w <= 0 || h <= 0;}
 
@@ -87,6 +119,15 @@ namespace picosystem {
                   std::min(x + w, r.x + r.w) - std::max(x, r.x),
                   std::min(y + h, r.y + r.h) - std::max(y, r.y));
     }
+
+    Point center() const {
+      return Point(x + w/2, y + h/2);
+    }
+
+    Size size() {
+      return Size(w, h);
+    }
+
   };
 
   inline Point Point::clamp(const Rect &r) const {
@@ -95,6 +136,8 @@ namespace picosystem {
   }
 
   inline Point::Point(const Vec2 &v) : x(v.x), y(v.y) {}
+
+
 
   struct Surface;
 
@@ -124,6 +167,7 @@ namespace picosystem {
     void clear();
     void pixel(int32_t x, int32_t y);
     void rectangle(int32_t rx, int32_t ry, int32_t rw, int32_t rh);
+    void rectangle(Rect r);
     void pixel_span(const Point &p, int32_t l);
     void circle(const Point &p, int32_t radius);
     void text(const std::string &t, int32_t x, int32_t y, int32_t wrap = -1);
