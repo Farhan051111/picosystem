@@ -158,7 +158,7 @@ namespace picosystem {
     //dma_scanline = 0;
     //transmit_scanline();
 
-    wait_vsync();
+    //wait_vsync();
 
     if(!dma_active) {
       // transfer size is 32 bits
