@@ -1,6 +1,6 @@
 add_library(picosystem INTERFACE)
 
-pico_generate_pio_header(picosystem ${CMAKE_CURRENT_LIST_DIR}/pixel_double.pio)
+pico_generate_pio_header(picosystem ${CMAKE_CURRENT_LIST_DIR}/screen.pio)
 
 target_sources(picosystem INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/picosystem.cpp

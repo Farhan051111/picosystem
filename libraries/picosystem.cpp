@@ -1,16 +1,17 @@
-#include <string.h>
+
 #include <cstdlib>
 #include <vector>
 
 #include "hardware/adc.h"
 #include "pico/stdlib.h"
+#include "pico/time.h"
 
 #include "picosystem.hpp"
 
 
 namespace picosystem {
 
-  Surface _screen = Surface(120, 120);
+  Surface _screen = Surface(240, 240);
   Surface &screen = _screen;
 
   void init_picosystem() {
@@ -43,7 +44,7 @@ namespace picosystem {
 
     init_graphics();
 
-    intro();
+    //intro();
 
     gpio_set_function(button::A,    GPIO_FUNC_SIO);
     gpio_set_function(button::B,    GPIO_FUNC_SIO);

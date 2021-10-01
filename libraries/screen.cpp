@@ -9,12 +9,12 @@
 #include "hardware/resets.h"
 
 #include "picosystem.hpp"
-#include "pixel_double.pio.h"
+#include "screen.pio.h"
 
-PIO   pixel_double_pio  = pio0;
-uint  pixel_double_sm   = 0;
+PIO   screen_pio  = pio0;
+uint  screen_sm   = 0;
 
-uint8_t dma_buffer[120 * 120 * 2];
+uint8_t dma_buffer[240 * 240 * 2];
 
 uint32_t         dma_channel;
 volatile int16_t dma_scanline = -1;
@@ -79,7 +79,7 @@ void st7789_command(uint8_t command, size_t len = 0, const char *data = NULL) {
 
 // sets up dma transfer for current and previous scanline (except for
 // scanlines 0 and 120 which are sent on their own.)
-void transmit_scanline() {
+/*void transmit_scanline() {
   // start of data to transmit
   uint32_t *s = (uint32_t *)&dma_buffer[
     ((dma_scanline - 1) < 0 ? 0 : (dma_scanline - 1)) * 240
@@ -88,19 +88,17 @@ void transmit_scanline() {
   uint16_t c = (dma_scanline == 0 || dma_scanline == 120) ? 60 : 120;
   dma_channel_set_trans_count(dma_channel, c, false);
   dma_channel_set_read_addr(dma_channel, s, true);
-}
+}*/
+
+volatile bool dma_active = false;
 
 // once the dma transfer of the scanline is complete we move to the
 // next scanline (or quit if we're finished)
 void __isr dma_complete() {
   if (dma_hw->ints0 & (1u << dma_channel)) {
     dma_hw->ints0 = (1u << dma_channel); // clear irq flag
-    if(++dma_scanline > 120) {
-      // all scanlines done. reset counter and exit
-      dma_scanline = -1;
-      return;
-    }
-    transmit_scanline();
+    
+    dma_active = false;
   }
 }
 
@@ -114,10 +112,10 @@ void __isr dma_complete() {
   transmit_scanline();
 }*/
 
-static inline void pixel_double_program_init(PIO pio, uint sm, uint offset) {
+static inline void screen_program_init(PIO pio, uint sm, uint offset) {
   pio_sm_set_consecutive_pindirs(pio, sm, pin::MOSI, 2, true);
 
-  pio_sm_config c = pixel_double_program_get_default_config(offset);
+  pio_sm_config c = screen_program_get_default_config(offset);
 
   // osr shifts left, autopull off, autopull threshold 32
   sm_config_set_out_shift(&c, false, false, 32);
@@ -132,8 +130,8 @@ static inline void pixel_double_program_init(PIO pio, uint sm, uint offset) {
   // join fifos as only tx needed (gives 8 deep fifo instead of 4)
   sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
 
-  pio_gpio_init(pixel_double_pio, pin::MOSI);
-  pio_gpio_init(pixel_double_pio, pin::SCK);
+  pio_gpio_init(screen_pio, pin::MOSI);
+  pio_gpio_init(screen_pio, pin::SCK);
 
   pio_sm_init(pio, sm, offset, &c);
   pio_sm_set_enabled(pio, sm, true);
@@ -150,15 +148,29 @@ namespace picosystem {
 
   void flip() {
     // wait for start of vsync period
-    wait_vsync();
+   // wait_vsync();
     // take a copy of the framebuffer (this takes < 1ms) so that
     // we can dma transfer over once vsync occurs without any
     // tearing it costs us around 28kb - yolo
-    memcpy(dma_buffer, screen.data, screen.w * screen.h * 2);
+    //memcpy(dma_buffer, screen.data, screen.w * screen.h * 2);
 
     // start the dma transfer of scanline data
-    dma_scanline = 0;
-    transmit_scanline();
+    //dma_scanline = 0;
+    //transmit_scanline();
+
+    wait_vsync();
+
+    if(!dma_active) {
+      // transfer size is 32 bits
+      uint32_t transfer_count = screen.w * screen.h / 2;
+      dma_channel_set_trans_count(dma_channel, transfer_count, false);
+      dma_active = true;
+      dma_channel_set_read_addr(dma_channel, screen.data, true);
+    }
+
+    // wait for screen transfer to complete before returning control
+    while(dma_active) {
+    }
   }
 
   void set_backlight(uint8_t brightness) {
@@ -241,8 +253,8 @@ namespace picosystem {
     //gpio_set_irq_enabled_with_callback(pin::VSYNC, GPIO_IRQ_EDGE_RISE, true, &on_vsync);
 
     // setup the pixel doubling pio program
-    uint offset = pio_add_program(pixel_double_pio, &pixel_double_program);
-    pixel_double_program_init(pixel_double_pio, pixel_double_sm, offset);
+    uint offset = pio_add_program(screen_pio, &screen_program);
+    screen_program_init(screen_pio, screen_sm, offset);
 
     // initialise dma channel for transmitting pixel data to screen
     // via the pixel doubling pio - initially we configure it with no
@@ -251,10 +263,10 @@ namespace picosystem {
     dma_channel = dma_claim_unused_channel(true);
     dma_channel_config config = dma_channel_get_default_config(dma_channel);
     channel_config_set_bswap(&config, true); // byte swap to reverse little endian
-    channel_config_set_dreq(&config, pio_get_dreq(pixel_double_pio, pixel_double_sm, true));
-    dma_channel_configure(dma_channel, &config, &pixel_double_pio->txf[pixel_double_sm], NULL, 0, false);
+    channel_config_set_dreq(&config, pio_get_dreq(screen_pio, screen_sm, true));
+    dma_channel_configure(dma_channel, &config, &screen_pio->txf[screen_sm], NULL, 0, false);
     dma_channel_set_irq0_enabled(dma_channel, true);
-    irq_set_enabled(pio_get_dreq(pixel_double_pio, pixel_double_sm, true), true);
+    irq_set_enabled(pio_get_dreq(screen_pio, screen_sm, true), true);
     irq_set_exclusive_handler(DMA_IRQ_0, dma_complete);
     irq_set_enabled(DMA_IRQ_0, true);
   }

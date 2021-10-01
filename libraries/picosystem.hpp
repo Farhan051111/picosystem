@@ -136,7 +136,7 @@ namespace picosystem {
   };
 
   extern Surface &screen;
-  extern const uint8_t font_data[475];
+  extern const uint8_t font8x8_basic[128][8];
 
   // intialisation
   void init_picosystem();
