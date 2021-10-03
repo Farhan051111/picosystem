@@ -7,17 +7,17 @@
 #include "picosystem.hpp"
 
 using namespace picosystem;
-
+/*
 struct Ball {
   Vec2 position;
   Vec2 direction;
   int radius;
   Pen pen;
-};
+};*/
 
 int main() {
   init_picosystem();
-
+/*
   std::vector<Ball> balls;
   for(int i = 0; i < 1000; i++) {
     Ball ball = {
@@ -57,5 +57,5 @@ int main() {
     screen.text(voltage_string, 10, 10);
 
     flip();
-  }
+  }*/
 }

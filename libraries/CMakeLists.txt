@@ -4,9 +4,8 @@ pico_generate_pio_header(picosystem ${CMAKE_CURRENT_LIST_DIR}/screen.pio)
 
 target_sources(picosystem INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/picosystem.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/graphics.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/screen.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/intro.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/font.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/hal.cpp
 )
 
 target_include_directories(picosystem INTERFACE ${CMAKE_CURRENT_LIST_DIR})

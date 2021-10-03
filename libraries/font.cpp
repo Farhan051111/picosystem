@@ -7,81 +7,8 @@ namespace picosystem {
 
   void init_graphics() {
   }
+/*
 
-  void COPY(Pen *source, uint32_t source_step, Pen *dest, uint32_t count) {
-    if(source_step) {
-      // for blits (i.e. source_step == 1) we're unlikely to do much
-      // better than the built in memcpy implementation!
-      memcpy(dest, source, count * 2);
-    }else{
-      // for pen drawing (i.e. source_step == 0)
-
-      // for longer runs of pixels we can almost double the performance
-      // by copying two pixels at a time
-
-      // align destination to 32bits
-      if((uintptr_t(dest) & 0b11) && count) {
-        *dest++ = *source;
-        count--;
-      }
-
-      if(!count) return;
-
-      // two pixels at a time
-      uint32_t dpen = (source->v << 16) | source->v;
-      uint32_t *dwd = (uint32_t *)dest;
-      while(count > 1) {
-        *dwd++ = dpen;
-        count -= 2;
-      }
-
-      // finish off with last pixel if needed
-      if(count) {
-        *dest = *source;
-      }
-    }
-  }
-
-  void BLEND(Pen *source, uint32_t source_step, Pen *dest, uint32_t count) {
-    // unpack source into 32 bits with space for alpha multiplication
-    // we start with ggggbbbbaaaarrrr and end up with
-    // ------------gggg----bbbb----rrrr
-    uint32_t s = (source->v | ((source->v & 0xf000) << 4)) & 0xf0f0f;
-    uint8_t sa = (source->v &0xf0) >> 4;
-
-    while(count--) {
-      // unpack dest into 32 bits with space for alpha multiplication
-      // we start with ggggbbbbaaaarrrr and end up with
-      // ------------gggg----bbbb----rrrr
-      uint32_t d = (dest->v | ((dest->v & 0xf000) << 4)) & 0xf0f0f;
-      uint8_t da = (dest->v & 0xf0); // extract alpha to add back later
-
-      // blend the three channels in one go
-      d = d + ((sa * (s - d) + 0x070707) >> 4);
-
-      // reconstruct blended colour components into original format
-      //dest->v &= 0x00f0; // mask out r, g, b channels
-      //dest->v |= (d & 0x0f0f) | ((d & 0xf0000) >> 4);
-      dest->v = (d & 0x0f0f) | ((d & 0xf0000) >> 4) | da;
-      dest++;
-
-      if(source_step == 1) {
-        source += source_step;
-
-        // unpack and prepare next source pixel
-        s = (source->v | ((source->v & 0xf000) << 4)) & 0xf0f0f;
-        sa = (source->v &0xf0) >> 4;
-      }
-    }
-  }
-
-  Pen::Pen(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    // order looks odd because uint16_t is little endian. the resulting
-    // two bytes will be contain pixel data in the format aaaarrrrggggbbbb
-    v = (r & 0xf) | ((a & 0xf) << 4) | ((b & 0xf) << 8) | ((g & 0xf) << 12);
-  }
-
-  Pen::Pen(uint16_t v) : v(v) {}
 
   Pen Pen::from_hsv(float h, float s, float v) {
     float i = floor(h * 6.0f);
@@ -253,11 +180,14 @@ namespace picosystem {
   uint32_t Surface::offset(int32_t x, int32_t y) const {
     return x + y * w;
   }
+*/
 
-  // https://github.com/dhepper/font8x8/blob/master/font8x8_basic.h
+
+
+ // https://github.com/dhepper/font8x8/blob/master/font8x8_basic.h
   // Constant: font8x8_basic
   // Contains an 8x8 font map for unicode points U+0000 - U+007F (basic latin)
-  const uint8_t font8x8_basic[128][8] = {
+  extern const uint8_t font8x8_basic[128][8] = {
       { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0000 (nul)
       { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0001
       { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0002
@@ -387,4 +317,5 @@ namespace picosystem {
       { 0x6E, 0x3B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+007E (~)
       { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}    // U+007F
   };
+
 }
